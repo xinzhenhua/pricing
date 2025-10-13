@@ -38,7 +38,7 @@
         }
         
         .container {
-            max-width: 1200px;
+            max-width: 1400px;
             margin: 0 auto;
             padding: 20px;
         }
@@ -236,6 +236,7 @@
             padding: 25px;
             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
             border: 1px solid var(--border-color);
+            min-width: 0;
         }
         
         .quote-card.highlight {
@@ -437,6 +438,88 @@
             border-top: 1px solid var(--border-color);
             margin-top: 40px;
             color: #888;
+        }
+        
+        /* 模态框样式 */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .modal-content {
+            background-color: var(--card-bg);
+            padding: 30px;
+            border-radius: 8px;
+            width: 90%;
+            max-width: 400px;
+            position: relative;
+            border: 1px solid var(--border-color);
+        }
+        
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            position: absolute;
+            right: 15px;
+            top: 10px;
+            cursor: pointer;
+        }
+        
+        .close:hover {
+            color: var(--primary-color);
+        }
+        
+        .modal-title {
+            margin-bottom: 20px;
+            color: var(--primary-color);
+        }
+        
+        .admin-btn {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background-color: rgba(30, 30, 30, 0.8);
+            color: var(--primary-color);
+            border: 1px solid var(--border-color);
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            z-index: 100;
+            font-size: 0.9rem;
+        }
+        
+        .admin-btn:hover {
+            background-color: rgba(50, 50, 50, 0.8);
+        }
+        
+        /* 电脑端适配 */
+        @media (min-width: 1200px) {
+            .container {
+                max-width: 1600px;
+            }
+            
+            .quote-table, .material-table {
+                font-size: 1rem;
+            }
+            
+            .quote-table th, .quote-table td,
+            .material-table th, .material-table td {
+                padding: 12px 10px;
+            }
+            
+            .quote-card {
+                padding: 30px;
+            }
         }
         
         /* 移动端适配 */
@@ -987,7 +1070,7 @@
             mid: {
                 "水电改造": {人工: 35, 辅料: 30, brand: "法兰特/伟星", eco: "国标认证"},
                 "贴地砖800x800": {人工: 40, 辅料: 25, brand: "德高", eco: "国标认证"},
-                "贴墙砖400X800": {人工: 45, 辅料: 25, brand: "德高", eco: "国标认证"},
+                "贴墙砖400X800": {human: 45, 辅料: 25, brand: "德高", eco: "国标认证"},
                 "贴地砖750X1500": {人工: 75, 辅料: 25, brand: "德高", eco: "国标认证"},
                 "贴墙砖600X1200": {人工: 60, 辅料: 25, brand: "德高", eco: "国标认证"},
                 "包立管 砌红砖": {人工: 230, 辅料: 80, brand: "海螺", eco: "国标GB175-2007"},
@@ -1100,27 +1183,61 @@
         // 初始化数据到LeanCloud
         async function initializeData() {
             try {
-                // 检查是否已存在数据
+                // 检查SystemConfig是否已存在数据
+                const SystemConfig = AV.Object.extend('SystemConfig');
                 const query = new AV.Query('SystemConfig');
-                const config = await query.first();
+                let config = await query.first();
                 
                 if (!config) {
                     // 创建初始数据
-                    const SystemConfig = AV.Object.extend('SystemConfig');
-                    const systemConfig = new SystemConfig();
+                    console.log('创建初始SystemConfig数据...');
+                    config = new SystemConfig();
                     
-                    systemConfig.set('coefficients', initialData.coefficients);
-                    systemConfig.set('high', initialData.high);
-                    systemConfig.set('mid', initialData.mid);
-                    systemConfig.set('low', initialData.low);
-                    systemConfig.set('material', initialData.material);
-                    systemConfig.set('materialCoefficients', initialData.materialCoefficients);
+                    config.set('coefficients', initialData.coefficients);
+                    config.set('high', initialData.high);
+                    config.set('mid', initialData.mid);
+                    config.set('low', initialData.low);
+                    config.set('material', initialData.material);
+                    config.set('materialCoefficients', initialData.materialCoefficients);
                     
-                    await systemConfig.save();
-                    console.log('初始数据已保存到LeanCloud');
+                    await config.save();
+                    console.log('初始SystemConfig数据已保存到LeanCloud');
                 }
+                
+                // 检查Quote类是否存在（通过尝试查询一条记录）
+                const Quote = AV.Object.extend('Quote');
+                const quoteQuery = new AV.Query('Quote');
+                quoteQuery.limit(1);
+                await quoteQuery.find();
+                
+                console.log('LeanCloud数据初始化完成');
+                return true;
             } catch (error) {
                 console.error('初始化数据失败:', error);
+                // 如果是因为类不存在，我们尝试创建一条记录来隐式创建类
+                if (error.code === 101 || error.code === 1) { // Class doesn't exist
+                    try {
+                        console.log('尝试创建必要的Class...');
+                        // 创建SystemConfig
+                        const SystemConfig = AV.Object.extend('SystemConfig');
+                        const config = new SystemConfig();
+                        config.set('coefficients', initialData.coefficients);
+                        await config.save();
+                        
+                        // 创建Quote
+                        const Quote = AV.Object.extend('Quote');
+                        const quote = new Quote();
+                        quote.set('test', 'init');
+                        await quote.save();
+                        
+                        console.log('Class创建成功，现在重新初始化数据...');
+                        return await initializeData();
+                    } catch (createError) {
+                        console.error('创建Class失败:', createError);
+                        return false;
+                    }
+                }
+                return false;
             }
         }
 
@@ -1132,19 +1249,25 @@
                 
                 if (config) {
                     return {
-                        coefficients: config.get('coefficients'),
-                        high: config.get('high'),
-                        mid: config.get('mid'),
-                        low: config.get('low'),
-                        material: config.get('material'),
-                        materialCoefficients: config.get('materialCoefficients')
+                        coefficients: config.get('coefficients') || initialData.coefficients,
+                        high: config.get('high') || initialData.high,
+                        mid: config.get('mid') || initialData.mid,
+                        low: config.get('low') || initialData.low,
+                        material: config.get('material') || initialData.material,
+                        materialCoefficients: config.get('materialCoefficients') || initialData.materialCoefficients
                     };
                 } else {
                     // 如果没有数据，返回初始数据
+                    console.log('使用本地初始数据');
                     return initialData;
                 }
             } catch (error) {
                 console.error('获取数据失败:', error);
+                // 如果是因为类不存在，尝试初始化
+                if (error.code === 101) {
+                    await initializeData();
+                    return initialData;
+                }
                 return initialData;
             }
         }
@@ -1153,23 +1276,36 @@
         async function saveData(key, data) {
             try {
                 const query = new AV.Query('SystemConfig');
-                const config = await query.first();
+                let config = await query.first();
                 
                 if (config) {
                     config.set(key, data);
                     await config.save();
+                    console.log(`${key} 数据保存成功`);
                     return true;
                 } else {
                     // 如果没有配置记录，创建新的
                     const SystemConfig = AV.Object.extend('SystemConfig');
-                    const systemConfig = new SystemConfig();
+                    config = new SystemConfig();
                     
-                    systemConfig.set(key, data);
-                    await systemConfig.save();
+                    // 设置所有数据
+                    config.set('coefficients', initialData.coefficients);
+                    config.set('high', initialData.high);
+                    config.set('mid', initialData.mid);
+                    config.set('low', initialData.low);
+                    config.set('material', initialData.material);
+                    config.set('materialCoefficients', initialData.materialCoefficients);
+                    
+                    // 更新特定的key
+                    config.set(key, data);
+                    
+                    await config.save();
+                    console.log(`新的SystemConfig创建成功，${key} 数据已保存`);
                     return true;
                 }
             } catch (error) {
                 console.error('保存数据失败:', error);
+                alert('保存失败: ' + error.message);
                 return false;
             }
         }
@@ -1196,9 +1332,23 @@
                 quote.set('createdAt', new Date());
                 
                 const result = await quote.save();
+                console.log('报价已保存到云端，ID:', result.id);
                 return result.id;
             } catch (error) {
                 console.error('保存报价失败:', error);
+                // 如果是因为Quote类不存在，我们尝试创建一条记录来隐式创建类
+                if (error.code === 101) {
+                    try {
+                        const Quote = AV.Object.extend('Quote');
+                        const testQuote = new Quote();
+                        testQuote.set('test', 'init');
+                        await testQuote.save();
+                        console.log('Quote类创建成功，重新尝试保存报价...');
+                        return await saveQuoteToCloud(quoteData);
+                    } catch (createError) {
+                        console.error('创建Quote类失败:', createError);
+                    }
+                }
                 return null;
             }
         }
@@ -1206,8 +1356,10 @@
         // 获取历史报价
         async function getHistoryQuotes() {
             try {
-                const query = new AV.Query('Quote');
+                const Quote = AV.Object.extend('Quote');
+                const query = new AV.Query(Quote);
                 query.descending('createdAt');
+                query.limit(50); // 限制返回数量
                 const quotes = await query.find();
                 
                 return quotes.map(quote => ({
@@ -1223,6 +1375,10 @@
                 }));
             } catch (error) {
                 console.error('获取历史报价失败:', error);
+                // 如果是因为类不存在，返回空数组
+                if (error.code === 101) {
+                    return [];
+                }
                 return [];
             }
         }
@@ -1532,7 +1688,7 @@
         // 显示历史报价
         async function displayHistoryQuotes() {
             const historyBody = document.getElementById('historyBody');
-            historyBody.innerHTML = '';
+            historyBody.innerHTML = '<tr><td colspan="8" style="text-align: center; color: var(--text-secondary);">加载中...</td></tr>';
             
             const quotes = await getHistoryQuotes();
             
@@ -1541,17 +1697,19 @@
                 return;
             }
             
+            historyBody.innerHTML = '';
+            
             quotes.forEach(quote => {
                 const row = document.createElement('tr');
                 row.innerHTML = `
-                    <td>${quote.community}</td>
-                    <td>${quote.layout}</td>
-                    <td>${quote.area}㎡</td>
-                    <td>${quote.phone}</td>
-                    <td>¥${quote.lowTotal}</td>
-                    <td>¥${quote.midTotal}</td>
-                    <td>¥${quote.highTotal}</td>
-                    <td>${new Date(quote.createdAt).toLocaleString()}</td>
+                    <td>${quote.community || '-'}</td>
+                    <td>${quote.layout || '-'}</td>
+                    <td>${quote.area || 0}㎡</td>
+                    <td>${quote.phone || '-'}</td>
+                    <td>¥${quote.lowTotal || 0}</td>
+                    <td>¥${quote.midTotal || 0}</td>
+                    <td>¥${quote.highTotal || 0}</td>
+                    <td>${quote.createdAt ? new Date(quote.createdAt).toLocaleString() : '-'}</td>
                 `;
                 historyBody.appendChild(row);
             });
@@ -1623,6 +1781,16 @@
                 coefficientsBody.appendChild(row);
             }
             
+            // 加载主材系数
+            for (const [item, coefficient] of Object.entries(data.materialCoefficients)) {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${item} (主材)</td>
+                    <td><input type="number" value="${coefficient}" step="0.01" data-item="${item}"></td>
+                `;
+                coefficientsBody.appendChild(row);
+            }
+            
             // 加载参数设置
             loadParamsTable('highParamsBody', data.high);
             loadParamsTable('midParamsBody', data.mid);
@@ -1630,9 +1798,6 @@
             
             // 加载主材参数
             loadMaterialTable('materialParamsBody', data.material);
-            
-            // 加载主材系数
-            loadMaterialCoefficientsTable('materialCoefficientsBody', data.materialCoefficients);
         }
 
         // 加载参数表格
@@ -1665,21 +1830,6 @@
                     <td><input type="number" value="${values.low}" data-item="${item}" data-type="low"></td>
                     <td><input type="number" value="${values.mid}" data-item="${item}" data-type="mid"></td>
                     <td><input type="number" value="${values.high}" data-item="${item}" data-type="high"></td>
-                `;
-                tableBody.appendChild(row);
-            }
-        }
-
-        // 加载主材系数表格
-        function loadMaterialCoefficientsTable(tableId, params) {
-            const tableBody = document.getElementById('coefficientsBody');
-            
-            // 添加主材系数到系数设置表格
-            for (const [item, coefficient] of Object.entries(params)) {
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${item}</td>
-                    <td><input type="number" value="${coefficient}" step="0.01" data-item="${item}"></td>
                 `;
                 tableBody.appendChild(row);
             }
@@ -1807,7 +1957,7 @@
                 }
             });
             
-            loginBtn.addEventListener('click', () => {
+            loginBtn.addEventListener('click', async () => {
                 const password = document.getElementById('adminPassword').value;
                 if (password === '13572145395') {
                     adminLoginModal.style.display = 'none';
@@ -1815,7 +1965,7 @@
                     document.querySelector('.hero-section').style.display = 'none';
                     document.querySelector('.download-section').style.display = 'none';
                     document.querySelector('.form-section').style.display = 'none';
-                    loadAdminData();
+                    await loadAdminData();
                 } else {
                     alert('密码错误！');
                 }
@@ -1824,6 +1974,7 @@
 
         // 初始化页面
         async function initializePage() {
+            console.log('初始化页面...');
             await initializeData();
             createFloatingKeywords();
             initializeDownloads();
@@ -1849,9 +2000,16 @@
                     return;
                 }
                 
+                if (area <= 0) {
+                    alert('面积必须大于0！');
+                    return;
+                }
+                
                 // 显示报价
                 displayQuote(area, floorTile, wallTile, mainLight);
             });
+            
+            console.log('页面初始化完成');
         }
 
         // 页面加载完成后初始化
