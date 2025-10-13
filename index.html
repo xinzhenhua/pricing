@@ -279,6 +279,12 @@
             color: var(--text-secondary);
         }
         
+        /* 调整数量列宽，确保不换行 */
+        .quantity-cell {
+            white-space: nowrap;
+            min-width: 80px;
+        }
+        
         /* 主材报价单 */
         .material-quote {
             margin-top: 60px;
@@ -313,14 +319,6 @@
             border-radius: 4px;
             color: var(--primary-color);
             font-size: 0.85rem;
-        }
-        
-        /* 操作按钮区域 */
-        .action-buttons {
-            display: flex;
-            justify-content: center;
-            gap: 20px;
-            margin-top: 30px;
         }
         
         /* 管理员设置页面 */
@@ -407,6 +405,32 @@
             margin-top: 20px;
         }
         
+        /* 历史记录区域 */
+        .history-section {
+            margin-top: 40px;
+        }
+        
+        .history-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            font-size: 0.9rem;
+        }
+        
+        .history-table th, .history-table td {
+            padding: 10px 8px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+            line-height: 1.4;
+            word-break: break-word;
+        }
+        
+        .history-table th {
+            background-color: #2a2a2a;
+            font-weight: bold;
+            color: var(--text-secondary);
+        }
+        
         footer {
             text-align: center;
             padding: 30px 0;
@@ -446,19 +470,20 @@
                 padding: 15px;
             }
             
-            .quote-table, .material-table {
+            .quote-table, .material-table, .history-table {
                 display: block;
                 overflow-x: auto;
                 font-size: 0.8rem;
             }
             
             .quote-table th, .quote-table td,
-            .material-table th, .material-table td {
+            .material-table th, .material-table td,
+            .history-table th, .history-table td {
                 padding: 8px 6px;
             }
             
-            .action-buttons {
-                flex-direction: column;
+            .quantity-cell {
+                min-width: 60px;
             }
             
             .params-table {
@@ -484,13 +509,18 @@
         }
         
         @media (max-width: 480px) {
-            .quote-table, .material-table {
+            .quote-table, .material-table, .history-table {
                 font-size: 0.75rem;
             }
             
             .quote-table th, .quote-table td,
-            .material-table th, .material-table td {
+            .material-table th, .material-table td,
+            .history-table th, .history-table td {
                 padding: 6px 4px;
+            }
+            
+            .quantity-cell {
+                min-width: 50px;
             }
             
             .material-table input {
@@ -620,7 +650,7 @@
                         <thead>
                             <tr>
                                 <th>工程项目</th>
-                                <th>数量</th>
+                                <th class="quantity-cell">数量</th>
                                 <th>预算合计</th>
                                 <th>辅材品牌</th>
                                 <th>环保等级</th>
@@ -642,7 +672,7 @@
                         <thead>
                             <tr>
                                 <th>工程项目</th>
-                                <th>数量</th>
+                                <th class="quantity-cell">数量</th>
                                 <th>预算合计</th>
                                 <th>辅材品牌</th>
                                 <th>环保等级</th>
@@ -664,7 +694,7 @@
                         <thead>
                             <tr>
                                 <th>工程项目</th>
-                                <th>数量</th>
+                                <th class="quantity-cell">数量</th>
                                 <th>预算合计</th>
                                 <th>辅材品牌</th>
                                 <th>环保等级</th>
@@ -694,7 +724,7 @@
                         <thead>
                             <tr>
                                 <th>工程项目</th>
-                                <th>数量</th>
+                                <th class="quantity-cell">数量</th>
                                 <th>单价</th>
                                 <th>预算合计</th>
                             </tr>
@@ -714,7 +744,7 @@
                         <thead>
                             <tr>
                                 <th>工程项目</th>
-                                <th>数量</th>
+                                <th class="quantity-cell">数量</th>
                                 <th>单价</th>
                                 <th>预算合计</th>
                             </tr>
@@ -734,7 +764,7 @@
                         <thead>
                             <tr>
                                 <th>工程项目</th>
-                                <th>数量</th>
+                                <th class="quantity-cell">数量</th>
                                 <th>单价</th>
                                 <th>预算合计</th>
                             </tr>
@@ -763,6 +793,7 @@
                     <div class="tab" data-tab="mid">中端参数</div>
                     <div class="tab" data-tab="low">低端参数</div>
                     <div class="tab" data-tab="material">主材参数</div>
+                    <div class="tab" data-tab="history">历史记录</div>
                 </div>
                 
                 <div class="tab-content active" id="coefficients">
@@ -854,6 +885,29 @@
                         </tbody>
                     </table>
                     <button class="save-btn" id="saveMaterialParams">保存主材参数</button>
+                </div>
+                
+                <div class="tab-content" id="history">
+                    <h3>历史报价记录</h3>
+                    <div class="history-section">
+                        <table class="history-table">
+                            <thead>
+                                <tr>
+                                    <th>小区名称</th>
+                                    <th>户型</th>
+                                    <th>面积</th>
+                                    <th>联系电话</th>
+                                    <th>经济型报价</th>
+                                    <th>品质型报价</th>
+                                    <th>豪华型报价</th>
+                                    <th>报价时间</th>
+                                </tr>
+                            </thead>
+                            <tbody id="historyBody">
+                                <!-- 历史记录将通过JS填充 -->
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>
@@ -992,11 +1046,11 @@
                 "墙砖400X800": 2.16,
                 "地砖750X1500": 0.91,
                 "墙砖600X1200": 0.96,
+                "全屋定制衣柜": 0.3,
+                "橱柜": 0.052,
+                "铝扣板": 0.19,
                 "合金门": 2,
                 "推拉门": 1,
-                "全屋定制衣柜": 40,
-                "橱柜": 7,
-                "铝扣板": 0.19,
                 "开关面板": 1,
                 "美缝": 1,
                 "卫浴": 2,
@@ -1149,6 +1203,30 @@
             }
         }
 
+        // 获取历史报价
+        async function getHistoryQuotes() {
+            try {
+                const query = new AV.Query('Quote');
+                query.descending('createdAt');
+                const quotes = await query.find();
+                
+                return quotes.map(quote => ({
+                    id: quote.id,
+                    community: quote.get('community'),
+                    layout: quote.get('layout'),
+                    area: quote.get('area'),
+                    phone: quote.get('phone'),
+                    lowTotal: quote.get('lowTotal'),
+                    midTotal: quote.get('midTotal'),
+                    highTotal: quote.get('highTotal'),
+                    createdAt: quote.get('createdAt')
+                }));
+            } catch (error) {
+                console.error('获取历史报价失败:', error);
+                return [];
+            }
+        }
+
         // 创建漂浮关键词
         function createFloatingKeywords() {
             const container = document.getElementById('floatingKeywords');
@@ -1243,7 +1321,14 @@
             
             // 计算每个项目的费用
             for (const [item, coefficient] of Object.entries(coefficients)) {
-                let quantity = area * coefficient;
+                let quantity = coefficient;
+                
+                // 只有地砖、墙砖、全屋定制衣柜、橱柜、铝扣板是根据面积系数计算
+                const areaRelatedItems = ['地砖800x800', '墙砖400X800', '地砖750X1500', '墙砖600X1200', '全屋定制衣柜', '橱柜', '铝扣板'];
+                if (areaRelatedItems.includes(item)) {
+                    quantity = area * coefficient;
+                }
+                
                 let price = params[item][level];
                 
                 // 根据用户选择的规格，将未选中的地砖墙砖价格设为0
@@ -1346,7 +1431,7 @@
                 const row = document.createElement('tr');
                 row.innerHTML = `
                     <td>${item.name}</td>
-                    <td>${item.quantity}</td>
+                    <td class="quantity-cell">${item.quantity}</td>
                     <td>¥${item.cost}</td>
                     <td>${item.brand}</td>
                     <td>${item.eco}</td>
@@ -1364,7 +1449,7 @@
                 const row = document.createElement('tr');
                 row.innerHTML = `
                     <td>${item.name}</td>
-                    <td><input type="number" value="${item.quantity}" min="0" step="0.01" data-item="${item.name}" data-level="${level}"></td>
+                    <td class="quantity-cell"><input type="number" value="${item.quantity}" min="0" step="0.01" data-item="${item.name}" data-level="${level}"></td>
                     <td>¥${item.price}</td>
                     <td>¥<span class="item-total" data-item="${item.name}" data-level="${level}">${item.cost}</span></td>
                 `;
@@ -1444,6 +1529,34 @@
             }
         }
 
+        // 显示历史报价
+        async function displayHistoryQuotes() {
+            const historyBody = document.getElementById('historyBody');
+            historyBody.innerHTML = '';
+            
+            const quotes = await getHistoryQuotes();
+            
+            if (quotes.length === 0) {
+                historyBody.innerHTML = '<tr><td colspan="8" style="text-align: center; color: var(--text-secondary);">暂无历史报价记录</td></tr>';
+                return;
+            }
+            
+            quotes.forEach(quote => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${quote.community}</td>
+                    <td>${quote.layout}</td>
+                    <td>${quote.area}㎡</td>
+                    <td>${quote.phone}</td>
+                    <td>¥${quote.lowTotal}</td>
+                    <td>¥${quote.midTotal}</td>
+                    <td>¥${quote.highTotal}</td>
+                    <td>${new Date(quote.createdAt).toLocaleString()}</td>
+                `;
+                historyBody.appendChild(row);
+            });
+        }
+
         // 管理员设置功能
         function initializeAdminPanel() {
             const adminBtn = document.getElementById('adminBtn');
@@ -1477,6 +1590,11 @@
                     tab.classList.add('active');
                     const tabId = tab.getAttribute('data-tab');
                     document.getElementById(tabId).classList.add('active');
+                    
+                    // 如果切换到历史记录选项卡，加载历史记录
+                    if (tabId === 'history') {
+                        displayHistoryQuotes();
+                    }
                 });
             });
             
@@ -1512,6 +1630,9 @@
             
             // 加载主材参数
             loadMaterialTable('materialParamsBody', data.material);
+            
+            // 加载主材系数
+            loadMaterialCoefficientsTable('materialCoefficientsBody', data.materialCoefficients);
         }
 
         // 加载参数表格
@@ -1549,6 +1670,21 @@
             }
         }
 
+        // 加载主材系数表格
+        function loadMaterialCoefficientsTable(tableId, params) {
+            const tableBody = document.getElementById('coefficientsBody');
+            
+            // 添加主材系数到系数设置表格
+            for (const [item, coefficient] of Object.entries(params)) {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${item}</td>
+                    <td><input type="number" value="${coefficient}" step="0.01" data-item="${item}"></td>
+                `;
+                tableBody.appendChild(row);
+            }
+        }
+
         // 保存系数设置
         async function saveCoefficients() {
             const data = await getData();
@@ -1557,11 +1693,21 @@
             inputs.forEach(input => {
                 const item = input.getAttribute('data-item');
                 const value = parseFloat(input.value);
-                data.coefficients[item] = value;
+                
+                // 判断是基础施工系数还是主材系数
+                if (data.coefficients.hasOwnProperty(item)) {
+                    data.coefficients[item] = value;
+                } else if (data.materialCoefficients.hasOwnProperty(item)) {
+                    data.materialCoefficients[item] = value;
+                }
             });
             
-            const success = await saveData('coefficients', data.coefficients);
-            if (success) {
+            // 保存基础施工系数
+            const success1 = await saveData('coefficients', data.coefficients);
+            // 保存主材系数
+            const success2 = await saveData('materialCoefficients', data.materialCoefficients);
+            
+            if (success1 && success2) {
                 alert('系数设置已保存！');
             } else {
                 alert('保存失败，请重试！');
