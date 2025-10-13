@@ -1029,7 +1029,7 @@
     </div>
 
     <script>
-        // 初始数据
+        // 初始数据 - 按照要求的顺序定义
         const initialData = {
             coefficients: {
                 "水电改造": 0.9,
@@ -1038,7 +1038,8 @@
                 "贴地砖750X1500": 1,
                 "贴墙砖600X1200": 0.7,
                 "包立管 砌红砖": 0.03,
-                "海棠角墙面拉毛通铺通缝": 1,
+                "海棠角墙面拉毛": 1,
+                "通铺通缝": 1,
                 "窗帘盒": 0.03,
                 "双眼皮": 0.5,
                 "平顶": 0.037,
@@ -1056,7 +1057,8 @@
                 "贴地砖750X1500": {人工: 85, 辅料: 30, brand: "西卡", eco: "欧盟EC1标准"},
                 "贴墙砖600X1200": {人工: 70, 辅料: 30, brand: "西卡", eco: "欧盟EC1标准"},
                 "包立管 砌红砖": {人工: 260, 辅料: 100, brand: "海螺", eco: "国标GB175-2007"},
-                "海棠角墙面拉毛通铺通缝": {人工: 20, 辅料: 10, brand: "西卡", eco: "欧盟EC1标准"},
+                "海棠角墙面拉毛": {人工: 20, 辅料: 10, brand: "西卡", eco: "欧盟EC1标准"},
+                "通铺通缝": {人工: 20, 辅料: 10, brand: "西卡", eco: "欧盟EC1标准"},
                 "窗帘盒": {人工: 350, 辅料: 100, brand: "吉野", eco: "国标GB/T9775-2008"},
                 "双眼皮": {人工: 25, 辅料: 20, brand: "吉野", eco: "国标GB/T9775-2008"},
                 "平顶": {人工: 400, 辅料: 100, brand: "吉野", eco: "国标GB/T9775-2008"},
@@ -1070,11 +1072,12 @@
             mid: {
                 "水电改造": {人工: 35, 辅料: 30, brand: "法兰特/伟星", eco: "国标认证"},
                 "贴地砖800x800": {人工: 40, 辅料: 25, brand: "德高", eco: "国标认证"},
-                "贴墙砖400X800": {human: 45, 辅料: 25, brand: "德高", eco: "国标认证"},
+                "贴墙砖400X800": {人工: 45, 辅料: 25, brand: "德高", eco: "国标认证"},
                 "贴地砖750X1500": {人工: 75, 辅料: 25, brand: "德高", eco: "国标认证"},
                 "贴墙砖600X1200": {人工: 60, 辅料: 25, brand: "德高", eco: "国标认证"},
                 "包立管 砌红砖": {人工: 230, 辅料: 80, brand: "海螺", eco: "国标GB175-2007"},
-                "海棠角墙面拉毛通铺通缝": {人工: 18, 辅料: 8, brand: "德高", eco: "国标认证"},
+                "海棠角墙面拉毛": {人工: 18, 辅料: 8, brand: "德高", eco: "国标认证"},
+                "通铺通缝": {人工: 18, 辅料: 8, brand: "德高", eco: "国标认证"},
                 "窗帘盒": {人工: 300, 辅料: 80, brand: "伊蔚娜", eco: "欧盟CE/A+双认证"},
                 "双眼皮": {人工: 22, 辅料: 18, brand: "伊蔚娜", eco: "欧盟CE/A+双认证"},
                 "平顶": {人工: 350, 辅料: 80, brand: "伊蔚娜", eco: "欧盟CE/A+双认证"},
@@ -1092,7 +1095,8 @@
                 "贴地砖750X1500": {人工: 65, 辅料: 20, brand: "水泥沙混合", eco: "基础标准"},
                 "贴墙砖600X1200": {人工: 50, 辅料: 20, brand: "水泥沙混合", eco: "基础标准"},
                 "包立管 砌红砖": {人工: 200, 辅料: 60, brand: "海螺", eco: "国标GB175-2007"},
-                "海棠角墙面拉毛通铺通缝": {人工: 15, 辅料: 6, brand: "水泥沙混合", eco: "基础标准"},
+                "海棠角墙面拉毛": {人工: 15, 辅料: 6, brand: "水泥沙混合", eco: "基础标准"},
+                "通铺通缝": {人工: 15, 辅料: 6, brand: "水泥沙混合", eco: "基础标准"},
                 "窗帘盒": {人工: 250, 辅料: 60, brand: "泰山", eco: "国标GB/T9775-2008"},
                 "双眼皮": {人工: 18, 辅料: 15, brand: "泰山", eco: "国标GB/T9775-2008"},
                 "平顶": {人工: 300, 辅料: 60, brand: "泰山", eco: "国标GB/T9775-2008"},
@@ -1179,6 +1183,50 @@
 
         // 当前报价数据
         let currentQuoteData = null;
+
+        // 基础施工项目顺序
+        const baseConstructionOrder = [
+            "水电改造",
+            "贴地砖800x800", 
+            "贴墙砖400X800",
+            "贴地砖750X1500",
+            "贴墙砖600X1200",
+            "包立管 砌红砖",
+            "海棠角墙面拉毛",
+            "通铺通缝",
+            "窗帘盒",
+            "双眼皮",
+            "平顶",
+            "无主灯",
+            "墙固地固",
+            "腻子粉",
+            "乳胶漆1底2面",
+            "厨卫阳台防水",
+            "材料搬运垃圾清理成品保护"
+        ];
+
+        // 主材项目顺序
+        const mainMaterialOrder = [
+            "地砖800x800",
+            "墙砖400X800",
+            "地砖750X1500",
+            "墙砖600X1200",
+            "合金门",
+            "推拉门",
+            "全屋定制衣柜",
+            "橱柜",
+            "铝扣板",
+            "开关面板",
+            "美缝",
+            "卫浴",
+            "风暖浴霸 集成灯",
+            "卧室木门",
+            "踢脚线",
+            "窗套 垭口 入户门套",
+            "石材",
+            "水槽碗碟拉篮",
+            "冷热水角阀地漏"
+        ];
 
         // 初始化数据到LeanCloud
         async function initializeData() {
@@ -1310,7 +1358,7 @@
             }
         }
 
-        // 保存报价到LeanCloud
+        // 保存报价到LeanCloud - 修复createdAt错误
         async function saveQuoteToCloud(quoteData) {
             try {
                 const Quote = AV.Object.extend('Quote');
@@ -1329,7 +1377,7 @@
                 quote.set('lowMaterialTotal', quoteData.lowMaterialTotal);
                 quote.set('midMaterialTotal', quoteData.midMaterialTotal);
                 quote.set('highMaterialTotal', quoteData.highMaterialTotal);
-                quote.set('createdAt', new Date());
+                // 移除了手动设置createdAt，因为这是LeanCloud的保留字段
                 
                 const result = await quote.save();
                 console.log('报价已保存到云端，ID:', result.id);
@@ -1426,8 +1474,11 @@
             let total = 0;
             const quoteItems = [];
             
-            // 计算每个项目的费用
-            for (const [item, coefficient] of Object.entries(coefficients)) {
+            // 按照指定顺序计算每个项目的费用
+            for (const item of baseConstructionOrder) {
+                const coefficient = coefficients[item];
+                if (!coefficient) continue;
+                
                 let quantity = area * coefficient;
                 let cost = 0;
                 
@@ -1475,8 +1526,11 @@
             let total = 0;
             const quoteItems = [];
             
-            // 计算每个项目的费用
-            for (const [item, coefficient] of Object.entries(coefficients)) {
+            // 按照指定顺序计算每个项目的费用
+            for (const item of mainMaterialOrder) {
+                const coefficient = coefficients[item];
+                if (!coefficient) continue;
+                
                 let quantity = coefficient;
                 
                 // 只有地砖、墙砖、全屋定制衣柜、橱柜、铝扣板是根据面积系数计算
@@ -1578,39 +1632,47 @@
             document.getElementById('quoteSection').scrollIntoView({ behavior: 'smooth' });
         }
 
-        // 更新报价表格
+        // 更新报价表格 - 保持原有顺序
         function updateQuoteTable(tableId, items) {
             const tableBody = document.getElementById(tableId);
             tableBody.innerHTML = '';
             
-            items.forEach(item => {
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${item.name}</td>
-                    <td class="quantity-cell">${item.quantity}</td>
-                    <td>¥${item.cost}</td>
-                    <td>${item.brand}</td>
-                    <td>${item.eco}</td>
-                `;
-                tableBody.appendChild(row);
-            });
+            // 按照指定顺序显示项目
+            for (const itemName of baseConstructionOrder) {
+                const item = items.find(i => i.name === itemName);
+                if (item) {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${item.name}</td>
+                        <td class="quantity-cell">${item.quantity}</td>
+                        <td>¥${item.cost}</td>
+                        <td>${item.brand}</td>
+                        <td>${item.eco}</td>
+                    `;
+                    tableBody.appendChild(row);
+                }
+            }
         }
 
-        // 更新主材报价表格
+        // 更新主材报价表格 - 保持原有顺序
         function updateMaterialTable(tableId, items, level) {
             const tableBody = document.getElementById(tableId);
             tableBody.innerHTML = '';
             
-            items.forEach(item => {
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${item.name}</td>
-                    <td class="quantity-cell"><input type="number" value="${item.quantity}" min="0" step="0.01" data-item="${item.name}" data-level="${level}"></td>
-                    <td>¥${item.price}</td>
-                    <td>¥<span class="item-total" data-item="${item.name}" data-level="${level}">${item.cost}</span></td>
-                `;
-                tableBody.appendChild(row);
-            });
+            // 按照指定顺序显示项目
+            for (const itemName of mainMaterialOrder) {
+                const item = items.find(i => i.name === itemName);
+                if (item) {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${item.name}</td>
+                        <td class="quantity-cell"><input type="number" value="${item.quantity}" min="0" step="0.01" data-item="${item.name}" data-level="${level}"></td>
+                        <td>¥${item.price}</td>
+                        <td>¥<span class="item-total" data-item="${item.name}" data-level="${level}">${item.cost}</span></td>
+                    `;
+                    tableBody.appendChild(row);
+                }
+            }
             
             // 添加数量修改事件监听
             const inputs = tableBody.querySelectorAll('input');
