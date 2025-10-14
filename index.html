@@ -5,8 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>在西安装修一套房子到底要花多少钱？</title>
     <script src="https://cdn.jsdelivr.net/npm/leancloud-storage@4.12.0/dist/av-min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script>
         // 初始化 LeanCloud
         AV.init({
@@ -1204,7 +1203,7 @@
                     <option value="full">整装</option>
                 </select>
             </div>
-            <button class="btn" id="confirmExport" style="width: 100%; margin-top: 20px;">导出PDF</button>
+            <button class="btn" id="confirmExport" style="width: 100%; margin-top: 20px;">导出Excel</button>
         </div>
     </div>
 
@@ -1824,7 +1823,17 @@
                 highMaterialTotal: highMaterialQuote.total,
                 lowPackageTotal: lowPackageTotal,
                 midPackageTotal: midPackageTotal,
-                highPackageTotal: highPackageTotal
+                highPackageTotal: highPackageTotal,
+                baseQuoteItems: {
+                    low: lowQuote.items,
+                    mid: midQuote.items,
+                    high: highQuote.items
+                },
+                materialQuoteItems: {
+                    low: lowMaterialQuote.items,
+                    mid: midMaterialQuote.items,
+                    high: highMaterialQuote.items
+                }
             };
             
             // 自动保存报价到历史记录
@@ -1996,167 +2005,232 @@
             return phoneRegex.test(phone);
         }
 
-        // 导出报价单为PDF
-        async function exportQuoteToPDF(level, type) {
-            const { jsPDF } = window.jspdf;
-            const doc = new jsPDF();
+        // 导出报价单为Excel
+        async function exportQuoteToExcel(level, type) {
+            // 获取当前时间
+            const now = new Date();
+            const timeString = `${now.getFullYear()}年${now.getMonth()+1}月${now.getDate()}日${now.getHours()}时${now.getMinutes()}分`;
             
-            // 设置标题
-            doc.setFontSize(20);
-            doc.setTextColor(40);
-            doc.text('西安装修报价单', 105, 20, { align: 'center' });
-            
-            // 添加用户信息
-            doc.setFontSize(12);
-            doc.text(`小区名称: ${currentQuoteData.community}`, 20, 40);
-            doc.text(`户型: ${currentQuoteData.layout}`, 20, 50);
-            doc.text(`面积: ${currentQuoteData.area}㎡`, 20, 60);
-            doc.text(`联系电话: ${currentQuoteData.phone}`, 20, 70);
-            
-            let yPosition = 90;
+            // 创建新的工作簿
+            const wb = XLSX.utils.book_new();
             
             // 根据选择的类型导出不同的报价单
             if (type === 'base') {
                 // 基础施工报价单
-                doc.setFontSize(16);
-                doc.text('基础施工报价单', 20, yPosition);
-                yPosition += 15;
+                const baseData = [
+                    ['西安装修报价系统 - 基础施工报价单'],
+                    [''],
+                    ['小区名称:', currentQuoteData.community],
+                    ['户型:', currentQuoteData.layout],
+                    ['面积:', `${currentQuoteData.area}㎡`],
+                    ['联系电话:', currentQuoteData.phone],
+                    ['报价档次:', level === 'low' ? '经济型' : level === 'mid' ? '品质型' : '豪华型'],
+                    ['报价时间:', timeString],
+                    [''],
+                    ['基础施工总价:', `¥${currentQuoteData[`${level}Total`]}`],
+                    [''],
+                    ['工程项目', '数量', '预算合计(元)', '辅材品牌', '环保等级']
+                ];
                 
-                const baseTotal = currentQuoteData[`${level}Total`];
-                doc.setFontSize(14);
-                doc.text(`总价: ¥${baseTotal}`, 20, yPosition);
-                yPosition += 20;
-                
-                // 添加表格标题
-                doc.setFontSize(12);
-                doc.text('项目名称', 20, yPosition);
-                doc.text('数量', 80, yPosition);
-                doc.text('金额(元)', 120, yPosition);
-                doc.text('品牌', 150, yPosition);
-                doc.text('环保等级', 180, yPosition);
-                yPosition += 10;
-                
-                // 添加水平线
-                doc.line(20, yPosition, 190, yPosition);
-                yPosition += 10;
-                
-                // 获取基础施工数据
-                const baseQuote = await calculateQuote(
-                    currentQuoteData.area, 
-                    currentQuoteData.floorTile, 
-                    currentQuoteData.wallTile, 
-                    currentQuoteData.mainLight, 
-                    level
-                );
-                
-                // 添加项目明细
-                baseQuote.items.forEach(item => {
-                    if (yPosition > 270) {
-                        doc.addPage();
-                        yPosition = 20;
-                    }
-                    
-                    doc.text(item.name, 20, yPosition);
-                    doc.text(item.quantity.toString(), 80, yPosition);
-                    doc.text(`¥${item.cost}`, 120, yPosition);
-                    doc.text(item.brand, 150, yPosition);
-                    doc.text(item.eco, 180, yPosition);
-                    yPosition += 10;
+                // 添加基础施工明细
+                const baseItems = currentQuoteData.baseQuoteItems[level];
+                baseItems.forEach(item => {
+                    baseData.push([
+                        item.name,
+                        item.quantity,
+                        `¥${item.cost}`,
+                        item.brand,
+                        item.eco
+                    ]);
                 });
+                
+                // 创建工作表
+                const ws = XLSX.utils.aoa_to_sheet(baseData);
+                
+                // 设置列宽
+                const colWidths = [
+                    {wch: 30}, // 工程项目
+                    {wch: 10}, // 数量
+                    {wch: 15}, // 预算合计
+                    {wch: 20}, // 辅材品牌
+                    {wch: 20}  // 环保等级
+                ];
+                ws['!cols'] = colWidths;
+                
+                // 添加工作表到工作簿
+                XLSX.utils.book_append_sheet(wb, ws, '基础施工报价单');
                 
             } else if (type === 'material') {
                 // 主材报价单
-                doc.setFontSize(16);
-                doc.text('主材报价单', 20, yPosition);
-                yPosition += 15;
+                const materialData = [
+                    ['西安装修报价系统 - 主材报价单'],
+                    [''],
+                    ['小区名称:', currentQuoteData.community],
+                    ['户型:', currentQuoteData.layout],
+                    ['面积:', `${currentQuoteData.area}㎡`],
+                    ['联系电话:', currentQuoteData.phone],
+                    ['报价档次:', level === 'low' ? '经济型' : level === 'mid' ? '品质型' : '豪华型'],
+                    ['报价时间:', timeString],
+                    [''],
+                    ['主材总价:', `¥${currentQuoteData[`${level}MaterialTotal`]}`],
+                    [''],
+                    ['工程项目', '数量', '单价(元)', '预算合计(元)']
+                ];
                 
-                const materialTotal = currentQuoteData[`${level}MaterialTotal`];
-                doc.setFontSize(14);
-                doc.text(`总价: ¥${materialTotal}`, 20, yPosition);
-                yPosition += 20;
-                
-                // 添加表格标题
-                doc.setFontSize(12);
-                doc.text('项目名称', 20, yPosition);
-                doc.text('数量', 80, yPosition);
-                doc.text('单价(元)', 120, yPosition);
-                doc.text('金额(元)', 150, yPosition);
-                yPosition += 10;
-                
-                // 添加水平线
-                doc.line(20, yPosition, 190, yPosition);
-                yPosition += 10;
-                
-                // 获取主材数据
-                const materialQuote = await calculateMaterialQuote(
-                    currentQuoteData.area, 
-                    currentQuoteData.floorTile, 
-                    currentQuoteData.wallTile, 
-                    level
-                );
-                
-                // 添加项目明细
-                materialQuote.items.forEach(item => {
-                    if (yPosition > 270) {
-                        doc.addPage();
-                        yPosition = 20;
-                    }
-                    
-                    doc.text(item.name, 20, yPosition);
-                    doc.text(item.quantity.toString(), 80, yPosition);
-                    doc.text(`¥${item.price}`, 120, yPosition);
-                    doc.text(`¥${item.cost}`, 150, yPosition);
-                    yPosition += 10;
+                // 添加主材明细
+                const materialItems = currentQuoteData.materialQuoteItems[level];
+                materialItems.forEach(item => {
+                    materialData.push([
+                        item.name,
+                        item.quantity,
+                        `¥${item.price}`,
+                        `¥${item.cost}`
+                    ]);
                 });
                 
+                // 创建工作表
+                const ws = XLSX.utils.aoa_to_sheet(materialData);
+                
+                // 设置列宽
+                const colWidths = [
+                    {wch: 30}, // 工程项目
+                    {wch: 10}, // 数量
+                    {wch: 15}, // 单价
+                    {wch: 15}  // 预算合计
+                ];
+                ws['!cols'] = colWidths;
+                
+                // 添加工作表到工作簿
+                XLSX.utils.book_append_sheet(wb, ws, '主材报价单');
+                
             } else if (type === 'full') {
-                // 整装报价单
-                doc.setFontSize(16);
-                doc.text('整装报价单', 20, yPosition);
-                yPosition += 15;
+                // 整装报价单 - 包含基础施工和主材
                 
-                const packageTotal = currentQuoteData[`${level}PackageTotal`];
-                doc.setFontSize(14);
-                doc.text(`总价: ¥${packageTotal}`, 20, yPosition);
-                yPosition += 10;
+                // 基础施工工作表
+                const baseData = [
+                    ['西安装修报价系统 - 整装报价单 - 基础施工部分'],
+                    [''],
+                    ['小区名称:', currentQuoteData.community],
+                    ['户型:', currentQuoteData.layout],
+                    ['面积:', `${currentQuoteData.area}㎡`],
+                    ['联系电话:', currentQuoteData.phone],
+                    ['报价档次:', level === 'low' ? '经济型' : level === 'mid' ? '品质型' : '豪华型'],
+                    ['报价时间:', timeString],
+                    [''],
+                    ['基础施工总价:', `¥${currentQuoteData[`${level}Total`]}`],
+                    [''],
+                    ['工程项目', '数量', '预算合计(元)', '辅材品牌', '环保等级']
+                ];
                 
-                doc.setFontSize(10);
-                doc.text('此整装报价包含：基础施工、主材、全屋定制柜', 20, yPosition);
-                yPosition += 7;
-                doc.text('不包含：家具、家电、灯具、软装', 20, yPosition);
-                yPosition += 20;
+                // 添加基础施工明细
+                const baseItems = currentQuoteData.baseQuoteItems[level];
+                baseItems.forEach(item => {
+                    baseData.push([
+                        item.name,
+                        item.quantity,
+                        `¥${item.cost}`,
+                        item.brand,
+                        item.eco
+                    ]);
+                });
                 
-                // 添加基础施工部分
-                doc.setFontSize(12);
-                doc.text('基础施工:', 20, yPosition);
-                yPosition += 10;
+                // 创建工作表
+                const baseWs = XLSX.utils.aoa_to_sheet(baseData);
                 
-                const baseTotal = currentQuoteData[`${level}Total`];
-                doc.text(`¥${baseTotal}`, 20, yPosition);
-                yPosition += 15;
+                // 设置列宽
+                const baseColWidths = [
+                    {wch: 30}, // 工程项目
+                    {wch: 10}, // 数量
+                    {wch: 15}, // 预算合计
+                    {wch: 20}, // 辅材品牌
+                    {wch: 20}  // 环保等级
+                ];
+                baseWs['!cols'] = baseColWidths;
                 
-                // 添加主材部分
-                doc.text('主材:', 20, yPosition);
-                yPosition += 10;
+                // 主材工作表
+                const materialData = [
+                    ['西安装修报价系统 - 整装报价单 - 主材部分'],
+                    [''],
+                    ['小区名称:', currentQuoteData.community],
+                    ['户型:', currentQuoteData.layout],
+                    ['面积:', `${currentQuoteData.area}㎡`],
+                    ['联系电话:', currentQuoteData.phone],
+                    ['报价档次:', level === 'low' ? '经济型' : level === 'mid' ? '品质型' : '豪华型'],
+                    ['报价时间:', timeString],
+                    [''],
+                    ['主材总价:', `¥${currentQuoteData[`${level}MaterialTotal`]}`],
+                    [''],
+                    ['工程项目', '数量', '单价(元)', '预算合计(元)']
+                ];
                 
-                const materialTotal = currentQuoteData[`${level}MaterialTotal`];
-                doc.text(`¥${materialTotal}`, 20, yPosition);
-                yPosition += 15;
+                // 添加主材明细
+                const materialItems = currentQuoteData.materialQuoteItems[level];
+                materialItems.forEach(item => {
+                    materialData.push([
+                        item.name,
+                        item.quantity,
+                        `¥${item.price}`,
+                        `¥${item.cost}`
+                    ]);
+                });
+                
+                // 创建工作表
+                const materialWs = XLSX.utils.aoa_to_sheet(materialData);
+                
+                // 设置列宽
+                const materialColWidths = [
+                    {wch: 30}, // 工程项目
+                    {wch: 10}, // 数量
+                    {wch: 15}, // 单价
+                    {wch: 15}  // 预算合计
+                ];
+                materialWs['!cols'] = materialColWidths;
+                
+                // 汇总工作表
+                const summaryData = [
+                    ['西安装修报价系统 - 整装报价单 - 汇总'],
+                    [''],
+                    ['小区名称:', currentQuoteData.community],
+                    ['户型:', currentQuoteData.layout],
+                    ['面积:', `${currentQuoteData.area}㎡`],
+                    ['联系电话:', currentQuoteData.phone],
+                    ['报价档次:', level === 'low' ? '经济型' : level === 'mid' ? '品质型' : '豪华型'],
+                    ['报价时间:', timeString],
+                    [''],
+                    ['整装总价:', `¥${currentQuoteData[`${level}PackageTotal`]}`],
+                    [''],
+                    ['项目类别', '金额(元)'],
+                    ['基础施工', `¥${currentQuoteData[`${level}Total`]}`],
+                    ['主材', `¥${currentQuoteData[`${level}MaterialTotal`]}`],
+                    [''],
+                    ['说明:'],
+                    ['此整装报价包含：基础施工、主材、全屋定制柜'],
+                    ['不包含：家具、家电、灯具、软装']
+                ];
+                
+                // 创建工作表
+                const summaryWs = XLSX.utils.aoa_to_sheet(summaryData);
+                
+                // 设置列宽
+                const summaryColWidths = [
+                    {wch: 30}, // 项目类别
+                    {wch: 15}  // 金额
+                ];
+                summaryWs['!cols'] = summaryColWidths;
+                
+                // 添加工作表到工作簿
+                XLSX.utils.book_append_sheet(wb, baseWs, '基础施工');
+                XLSX.utils.book_append_sheet(wb, materialWs, '主材');
+                XLSX.utils.book_append_sheet(wb, summaryWs, '汇总');
             }
             
-            // 添加页脚
-            const pageCount = doc.internal.getNumberOfPages();
-            for (let i = 1; i <= pageCount; i++) {
-                doc.setPage(i);
-                doc.setFontSize(10);
-                doc.text(`第 ${i} 页 / 共 ${pageCount} 页`, 105, 285, { align: 'center' });
-                doc.text('© 2023 西安装修报价系统', 105, 290, { align: 'center' });
-            }
-            
-            // 保存PDF
-            const levelText = level === 'low' ? '经济型' : level === 'mid' ? '品质型' : '豪华型';
+            // 生成文件名
+            const levelText = level === 'low' ? '经济' : level === 'mid' ? '品质' : '豪华';
             const typeText = type === 'base' ? '基础施工' : type === 'material' ? '主材' : '整装';
-            doc.save(`西安装修报价单-${levelText}-${typeText}.pdf`);
+            const fileName = `${currentQuoteData.community}，${currentQuoteData.area}㎡，${levelText}${typeText}报价单，${timeString}.xlsx`;
+            
+            // 导出Excel文件
+            XLSX.writeFile(wb, fileName);
         }
 
         // 管理员设置功能
@@ -2445,7 +2519,7 @@
                 const level = document.getElementById('exportLevel').value;
                 const type = document.getElementById('exportType').value;
                 
-                exportQuoteToPDF(level, type);
+                exportQuoteToExcel(level, type);
                 exportModal.style.display = 'none';
             });
         }
