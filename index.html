@@ -1280,6 +1280,21 @@
     </div>
 
     <script>
+// LeanCloud 初始化
+(function() {
+    const APP_ID = 'KyrbPsdC2vZC3BDiLLr68pdB-gzGzoHsz';
+    const APP_KEY = 'wipXBSb1tmOo53HFhnxN9CFJ';
+    const SERVER_URL = 'https://kyrbpsdc.lc-cn-n1-shared.com';
+    
+    AV.init({
+        appId: APP_ID,
+        appKey: APP_KEY,
+        serverURL: SERVER_URL
+    });
+    
+    console.log('LeanCloud 初始化完成');
+})();
+        
         // 初始数据 - 按照要求的顺序定义
         const initialData = {
             coefficients: {
