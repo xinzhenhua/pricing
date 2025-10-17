@@ -7,7 +7,7 @@
     <script src="https://cdn.jsdelivr.net/npm/leancloud-storage@4.12.0/dist/av-min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
-        /* 保持原有的所有样式不变，只添加新的样式 */
+        /* 保持原有的样式不变，只添加新的样式 */
         
         /* 新增样式：Excel批量设置区域 */
         .excel-section {
@@ -63,11 +63,6 @@
             color: #f44336;
             border: 1px solid #f44336;
             display: block;
-        }
-        
-        /* 隐藏基础施工报价单中的数量列 */
-        .quote-table .quantity-cell {
-            display: none;
         }
         
         /* 保持原有其他样式不变 */
@@ -908,7 +903,9 @@
                 </div>
             </div>
             
-            <!-- 移除普通用户的导出按钮 -->
+            <div class="export-section">
+                <button class="btn" id="exportBtn">一键导出报价单</button>
+            </div>
         </div>
     </section>
     
@@ -929,8 +926,7 @@
                             <thead>
                                 <tr>
                                     <th>工程项目</th>
-                                    <!-- 隐藏数量列 -->
-                                    <th class="quantity-cell" style="display: none;">数量</th>
+                                    <th class="quantity-cell">数量</th>
                                     <th>预算合计</th>
                                     <th>辅材品牌</th>
                                     <th>环保等级</th>
@@ -955,8 +951,7 @@
                             <thead>
                                 <tr>
                                     <th>工程项目</th>
-                                    <!-- 隐藏数量列 -->
-                                    <th class="quantity-cell" style="display: none;">数量</th>
+                                    <th class="quantity-cell">数量</th>
                                     <th>预算合计</th>
                                     <th>辅材品牌</th>
                                     <th>环保等级</th>
@@ -981,8 +976,7 @@
                             <thead>
                                 <tr>
                                     <th>工程项目</th>
-                                    <!-- 隐藏数量列 -->
-                                    <th class="quantity-cell" style="display: none;">数量</th>
+                                    <th class="quantity-cell">数量</th>
                                     <th>预算合计</th>
                                     <th>辅材品牌</th>
                                     <th>环保等级</th>
@@ -1017,7 +1011,6 @@
                                     <th>工程项目</th>
                                     <th class="quantity-cell">数量</th>
                                     <th>单价</th>
-                                    <th>主材品牌</th> <!-- 新增主材品牌列 -->
                                     <th>预算合计</th>
                                 </tr>
                             </thead>
@@ -1041,7 +1034,6 @@
                                     <th>工程项目</th>
                                     <th class="quantity-cell">数量</th>
                                     <th>单价</th>
-                                    <th>主材品牌</th> <!-- 新增主材品牌列 -->
                                     <th>预算合计</th>
                                 </tr>
                             </thead>
@@ -1065,7 +1057,6 @@
                                     <th>工程项目</th>
                                     <th class="quantity-cell">数量</th>
                                     <th>单价</th>
-                                    <th>主材品牌</th> <!-- 新增主材品牌列 -->
                                     <th>预算合计</th>
                                 </tr>
                             </thead>
@@ -1087,7 +1078,6 @@
                 <div>
                     <button class="btn" id="downloadTemplate">下载Excel模板</button>
                     <button class="btn" id="uploadExcel">上传Excel文件</button>
-                    <button class="btn" id="adminExportBtn">一键导出报价单</button> <!-- 将导出按钮移到管理员页面 -->
                     <button class="btn" id="backToMain">返回主页面</button>
                 </div>
             </div>
@@ -1194,11 +1184,8 @@
                             <tr>
                                 <th>材料类别</th>
                                 <th>经济型单价</th>
-                                <th>经济型品牌</th>
                                 <th>品质型单价</th>
-                                <th>品质型品牌</th>
                                 <th>豪华型单价</th>
-                                <th>豪华型品牌</th>
                             </tr>
                         </thead>
                         <tbody id="materialParamsBody">
@@ -1293,20 +1280,6 @@
     </div>
 
     <script>
-        // LeanCloud 初始化
-(function() {
-    const APP_ID = 'KyrbPsdC2vZC3BDiLLr68pdB-gzGzoHsz';
-    const APP_KEY = 'wipXBSb1tmOo53HFhnxN9CFJ';
-    const SERVER_URL = 'https://kyrbpsdc.lc-cn-n1-shared.com';
-    
-    AV.init({
-        appId: APP_ID,
-        appKey: APP_KEY,
-        serverURL: SERVER_URL
-    });
-    
-    console.log('LeanCloud 初始化完成');
-})();
         // 初始数据 - 按照要求的顺序定义
         const initialData = {
             coefficients: {
@@ -1386,101 +1359,25 @@
                 "材料搬运垃圾清理成品保护": {人工: 10, 辅料: 3, brand: "-", eco: "-"}
             },
             material: {
-                "地砖800x800": {
-                    low: { price: 45, brand: "经济型地砖品牌" },
-                    mid: { price: 65, brand: "品质型地砖品牌" },
-                    high: { price: 120, brand: "豪华型地砖品牌" }
-                },
-                "墙砖400X800": {
-                    low: { price: 16, brand: "经济型墙砖品牌" },
-                    mid: { price: 25, brand: "品质型墙砖品牌" },
-                    high: { price: 45, brand: "豪华型墙砖品牌" }
-                },
-                "地砖750X1500": {
-                    low: { price: 80, brand: "经济型地砖品牌" },
-                    mid: { price: 100, brand: "品质型地砖品牌" },
-                    high: { price: 180, brand: "豪华型地砖品牌" }
-                },
-                "墙砖600X1200": {
-                    low: { price: 35, brand: "经济型墙砖品牌" },
-                    mid: { price: 50, brand: "品质型墙砖品牌" },
-                    high: { price: 85, brand: "豪华型墙砖品牌" }
-                },
-                "合金门": {
-                    low: { price: 850, brand: "经济型合金门品牌" },
-                    mid: { price: 850, brand: "品质型合金门品牌" },
-                    high: { price: 1700, brand: "豪华型合金门品牌" }
-                },
-                "推拉门": {
-                    low: { price: 3000, brand: "经济型推拉门品牌" },
-                    mid: { price: 3000, brand: "品质型推拉门品牌" },
-                    high: { price: 3000, brand: "豪华型推拉门品牌" }
-                },
-                "全屋定制衣柜": {
-                    low: { price: 500, brand: "经济型定制衣柜品牌" },
-                    mid: { price: 700, brand: "品质型定制衣柜品牌" },
-                    high: { price: 28000, brand: "豪华型定制衣柜品牌" }
-                },
-                "橱柜": {
-                    low: { price: 7000, brand: "经济型橱柜品牌" },
-                    mid: { price: 7000, brand: "品质型橱柜品牌" },
-                    high: { price: 7000, brand: "豪华型橱柜品牌" }
-                },
-                "铝扣板": {
-                    low: { price: 70, brand: "经济型铝扣板品牌" },
-                    mid: { price: 100, brand: "品质型铝扣板品牌" },
-                    high: { price: 2565, brand: "豪华型铝扣板品牌" }
-                },
-                "开关面板": {
-                    low: { price: 1000, brand: "经济型开关面板品牌" },
-                    mid: { price: 1000, brand: "品质型开关面板品牌" },
-                    high: { price: 1000, brand: "豪华型开关面板品牌" }
-                },
-                "美缝": {
-                    low: { price: 4000, brand: "经济型美缝品牌" },
-                    mid: { price: 4000, brand: "品质型美缝品牌" },
-                    high: { price: 4000, brand: "豪华型美缝品牌" }
-                },
-                "卫浴": {
-                    low: { price: 6400, brand: "经济型卫浴品牌" },
-                    mid: { price: 6400, brand: "品质型卫浴品牌" },
-                    high: { price: 6400, brand: "豪华型卫浴品牌" }
-                },
-                "风暖浴霸 集成灯": {
-                    low: { price: 1500, brand: "经济型浴霸品牌" },
-                    mid: { price: 1500, brand: "品质型浴霸品牌" },
-                    high: { price: 1500, brand: "豪华型浴霸品牌" }
-                },
-                "卧室木门": {
-                    low: { price: 3000, brand: "经济型木门品牌" },
-                    mid: { price: 3000, brand: "品质型木门品牌" },
-                    high: { price: 3000, brand: "豪华型木门品牌" }
-                },
-                "踢脚线": {
-                    low: { price: 1500, brand: "经济型踢脚线品牌" },
-                    mid: { price: 1500, brand: "品质型踢脚线品牌" },
-                    high: { price: 1500, brand: "豪华型踢脚线品牌" }
-                },
-                "窗套 垭口 入户门套": {
-                    low: { price: 2000, brand: "经济型门套品牌" },
-                    mid: { price: 2000, brand: "品质型门套品牌" },
-                    high: { price: 2000, brand: "豪华型门套品牌" }
-                },
-                "石材": {
-                    low: { price: 1500, brand: "经济型石材品牌" },
-                    mid: { price: 1500, brand: "品质型石材品牌" },
-                    high: { price: 1500, brand: "豪华型石材品牌" }
-                },
-                "水槽碗碟拉篮": {
-                    low: { price: 1000, brand: "经济型拉篮品牌" },
-                    mid: { price: 1000, brand: "品质型拉篮品牌" },
-                    high: { price: 1000, brand: "豪华型拉篮品牌" }
-                },
-                "冷热水角阀地漏": {
-                    low: { price: 600, brand: "经济型角阀品牌" },
-                    mid: { price: 600, brand: "品质型角阀品牌" },
-                    high: { price: 600, brand: "豪华型角阀品牌" }
-                }
+                "地砖800x800": {low: 45, mid: 65, high: 120},
+                "墙砖400X800": {low: 16, mid: 25, high: 45},
+                "地砖750X1500": {low: 80, mid: 100, high: 180},
+                "墙砖600X1200": {low: 35, mid: 50, high: 85},
+                "合金门": {low: 850, mid: 850, high: 1700},
+                "推拉门": {low: 3000, mid: 3000, high: 3000},
+                "全屋定制衣柜": {low: 500, mid: 700, high: 28000},
+                "橱柜": {low: 7000, mid: 7000, high: 7000},
+                "铝扣板": {low: 70, mid: 100, high: 2565},
+                "开关面板": {low: 1000, mid: 1000, high: 1000},
+                "美缝": {low: 4000, mid: 4000, high: 4000},
+                "卫浴": {low: 6400, mid: 6400, high: 6400},
+                "风暖浴霸 集成灯": {low: 1500, mid: 1500, high: 1500},
+                "卧室木门": {low: 3000, mid: 3000, high: 3000},
+                "踢脚线": {low: 1500, mid: 1500, high: 1500},
+                "窗套 垭口 入户门套": {low: 2000, mid: 2000, high: 2000},
+                "石材": {low: 1500, mid: 1500, high: 1500},
+                "水槽碗碟拉篮": {low: 1000, mid: 1000, high: 1000},
+                "冷热水角阀地漏": {low: 600, mid: 600, high: 600}
             },
             materialCoefficients: {
                 "地砖800x800": 1.65,
@@ -1908,8 +1805,7 @@
                     quantity = area * coefficient;
                 }
                 
-                let price = params[item][level].price;
-                let brand = params[item][level].brand;
+                let price = params[item][level];
                 
                 // 根据用户选择的规格，将未选中的地砖墙砖价格设为0
                 if (item === "地砖800x800" && floorTile === "750*1500") {
@@ -1932,7 +1828,6 @@
                     name: item,
                     quantity: Math.round(quantity * 100) / 100,
                     price: price,
-                    brand: brand,
                     cost: Math.round(cost)
                 });
             }
@@ -2025,7 +1920,7 @@
             document.getElementById('fullPackageSection').scrollIntoView({ behavior: 'smooth' });
         }
 
-        // 更新报价表格 - 保持原有顺序，隐藏数量列
+        // 更新报价表格 - 保持原有顺序
         function updateQuoteTable(tableId, items) {
             const tableBody = document.getElementById(tableId);
             tableBody.innerHTML = '';
@@ -2037,8 +1932,7 @@
                     const row = document.createElement('tr');
                     row.innerHTML = `
                         <td>${item.name}</td>
-                        <!-- 隐藏数量列 -->
-                        <td class="quantity-cell" style="display: none;">${item.quantity}</td>
+                        <td class="quantity-cell">${item.quantity}</td>
                         <td>¥${item.cost}</td>
                         <td>${item.brand}</td>
                         <td>${item.eco}</td>
@@ -2048,7 +1942,7 @@
             }
         }
 
-        // 更新主材报价表格 - 保持原有顺序，添加品牌列
+        // 更新主材报价表格 - 保持原有顺序
         function updateMaterialTable(tableId, items, level) {
             const tableBody = document.getElementById(tableId);
             tableBody.innerHTML = '';
@@ -2062,7 +1956,6 @@
                         <td>${item.name}</td>
                         <td class="quantity-cell"><input type="number" value="${item.quantity}" min="0" step="0.01" data-item="${item.name}" data-level="${level}"></td>
                         <td>¥${item.price}</td>
-                        <td>${item.brand}</td>
                         <td>¥<span class="item-total" data-item="${item.name}" data-level="${level}">${item.cost}</span></td>
                     `;
                     tableBody.appendChild(row);
@@ -2084,7 +1977,7 @@
             const quantity = parseFloat(input.value);
             
             const data = await getData();
-            let price = data.material[itemName][level].price;
+            let price = data.material[itemName][level];
             
             // 根据用户选择的规格，将未选中的地砖墙砖价格设为0
             const floorTile = document.getElementById('floorTile').value;
@@ -2115,7 +2008,7 @@
             inputs.forEach(input => {
                 const item = input.getAttribute('data-item');
                 const qty = parseFloat(input.value);
-                let prc = data.material[item][level].price;
+                let prc = data.material[item][level];
                 
                 // 根据用户选择的规格，将未选中的地砖墙砖价格设为0
                 if (item === "地砖800x800" && floorTile === "750*1500") {
@@ -2208,7 +2101,7 @@
                     [''],
                     ['基础施工总价:', `¥${currentQuoteData[`${level}Total`]}`],
                     [''],
-                    ['工程项目', '预算合计(元)', '辅材品牌', '环保等级']
+                    ['工程项目', '数量', '预算合计(元)', '辅材品牌', '环保等级']
                 ];
                 
                 // 添加基础施工明细
@@ -2216,6 +2109,7 @@
                 baseItems.forEach(item => {
                     baseData.push([
                         item.name,
+                        item.quantity,
                         `¥${item.cost}`,
                         item.brand,
                         item.eco
@@ -2228,6 +2122,7 @@
                 // 设置列宽
                 const colWidths = [
                     {wch: 30}, // 工程项目
+                    {wch: 10}, // 数量
                     {wch: 15}, // 预算合计
                     {wch: 20}, // 辅材品牌
                     {wch: 20}  // 环保等级
@@ -2251,7 +2146,7 @@
                     [''],
                     ['主材总价:', `¥${currentQuoteData[`${level}MaterialTotal`]}`],
                     [''],
-                    ['工程项目', '数量', '单价(元)', '主材品牌', '预算合计(元)']
+                    ['工程项目', '数量', '单价(元)', '预算合计(元)']
                 ];
                 
                 // 添加主材明细
@@ -2261,7 +2156,6 @@
                         item.name,
                         item.quantity,
                         `¥${item.price}`,
-                        item.brand,
                         `¥${item.cost}`
                     ]);
                 });
@@ -2274,7 +2168,6 @@
                     {wch: 30}, // 工程项目
                     {wch: 10}, // 数量
                     {wch: 15}, // 单价
-                    {wch: 20}, // 主材品牌
                     {wch: 15}  // 预算合计
                 ];
                 ws['!cols'] = colWidths;
@@ -2298,7 +2191,7 @@
                     [''],
                     ['基础施工总价:', `¥${currentQuoteData[`${level}Total`]}`],
                     [''],
-                    ['工程项目', '预算合计(元)', '辅材品牌', '环保等级']
+                    ['工程项目', '数量', '预算合计(元)', '辅材品牌', '环保等级']
                 ];
                 
                 // 添加基础施工明细
@@ -2306,6 +2199,7 @@
                 baseItems.forEach(item => {
                     baseData.push([
                         item.name,
+                        item.quantity,
                         `¥${item.cost}`,
                         item.brand,
                         item.eco
@@ -2318,6 +2212,7 @@
                 // 设置列宽
                 const baseColWidths = [
                     {wch: 30}, // 工程项目
+                    {wch: 10}, // 数量
                     {wch: 15}, // 预算合计
                     {wch: 20}, // 辅材品牌
                     {wch: 20}  // 环保等级
@@ -2337,7 +2232,7 @@
                     [''],
                     ['主材总价:', `¥${currentQuoteData[`${level}MaterialTotal`]}`],
                     [''],
-                    ['工程项目', '数量', '单价(元)', '主材品牌', '预算合计(元)']
+                    ['工程项目', '数量', '单价(元)', '预算合计(元)']
                 ];
                 
                 // 添加主材明细
@@ -2347,7 +2242,6 @@
                         item.name,
                         item.quantity,
                         `¥${item.price}`,
-                        item.brand,
                         `¥${item.cost}`
                     ]);
                 });
@@ -2360,7 +2254,6 @@
                     {wch: 30}, // 工程项目
                     {wch: 10}, // 数量
                     {wch: 15}, // 单价
-                    {wch: 20}, // 主材品牌
                     {wch: 15}  // 预算合计
                 ];
                 materialWs['!cols'] = materialColWidths;
@@ -2419,7 +2312,6 @@
             const adminSection = document.getElementById('adminSection');
             const tabs = document.querySelectorAll('.tab');
             const tabContents = document.querySelectorAll('.tab-content');
-            const adminExportBtn = document.getElementById('adminExportBtn');
             
             // 打开管理员设置页面
             adminBtn.addEventListener('click', () => {
@@ -2433,15 +2325,6 @@
                 document.querySelector('.download-section').style.display = 'block';
                 document.querySelector('.form-section').style.display = 'block';
                 window.scrollTo(0, 0);
-            });
-            
-            // 管理员导出按钮
-            adminExportBtn.addEventListener('click', () => {
-                if (!currentQuoteData) {
-                    alert('请先生成报价单！');
-                    return;
-                }
-                document.getElementById('exportModal').style.display = 'flex';
             });
             
             // 选项卡切换
@@ -2635,19 +2518,16 @@
                 ['说明：请勿修改第一列的项目名称，只需修改对应的数值'],
                 [''],
                 ['主材参数设置'],
-                ['材料类别', '经济型单价', '经济型品牌', '品质型单价', '品质型品牌', '豪华型单价', '豪华型品牌']
+                ['材料类别', '经济型单价', '品质型单价', '豪华型单价']
             ];
             
             for (const item of mainMaterialOrder) {
                 if (data.material[item]) {
                     materialData.push([
                         item,
-                        data.material[item].low.price,
-                        data.material[item].low.brand,
-                        data.material[item].mid.price,
-                        data.material[item].mid.brand,
-                        data.material[item].high.price,
-                        data.material[item].high.brand
+                        data.material[item].low,
+                        data.material[item].mid,
+                        data.material[item].high
                     ]);
                 }
             }
@@ -2656,11 +2536,8 @@
             materialWs['!cols'] = [
                 {wch: 30}, // 材料类别
                 {wch: 15}, // 经济型单价
-                {wch: 20}, // 经济型品牌
                 {wch: 15}, // 品质型单价
-                {wch: 20}, // 品质型品牌
-                {wch: 15}, // 豪华型单价
-                {wch: 20}  // 豪华型品牌
+                {wch: 15}  // 豪华型单价
             ];
             
             // 添加工作表到工作簿
@@ -2897,18 +2774,9 @@
                             if (row[0] === '材料类别') continue;
                             
                             result.data.material[row[0]] = {
-                                low: {
-                                    price: parseFloat(row[1]) || 0,
-                                    brand: row[2] || ''
-                                },
-                                mid: {
-                                    price: parseFloat(row[3]) || 0,
-                                    brand: row[4] || ''
-                                },
-                                high: {
-                                    price: parseFloat(row[5]) || 0,
-                                    brand: row[6] || ''
-                                }
+                                low: parseFloat(row[1]) || 0,
+                                mid: parseFloat(row[2]) || 0,
+                                high: parseFloat(row[3]) || 0
                             };
                         }
                     }
@@ -2987,20 +2855,8 @@
                 const item = input.getAttribute('data-item');
                 const type = input.getAttribute('data-type');
                 
-                if (params[item]) {
-                    if (type === 'low-price') {
-                        input.value = params[item].low.price;
-                    } else if (type === 'low-brand') {
-                        input.value = params[item].low.brand;
-                    } else if (type === 'mid-price') {
-                        input.value = params[item].mid.price;
-                    } else if (type === 'mid-brand') {
-                        input.value = params[item].mid.brand;
-                    } else if (type === 'high-price') {
-                        input.value = params[item].high.price;
-                    } else if (type === 'high-brand') {
-                        input.value = params[item].high.brand;
-                    }
+                if (params[item] && params[item][type] !== undefined) {
+                    input.value = params[item][type];
                 }
             });
         }
@@ -3068,12 +2924,9 @@
                 const row = document.createElement('tr');
                 row.innerHTML = `
                     <td>${item}</td>
-                    <td><input type="number" value="${values.low.price}" data-item="${item}" data-type="low-price"></td>
-                    <td><input type="text" value="${values.low.brand}" data-item="${item}" data-type="low-brand"></td>
-                    <td><input type="number" value="${values.mid.price}" data-item="${item}" data-type="mid-price"></td>
-                    <td><input type="text" value="${values.mid.brand}" data-item="${item}" data-type="mid-brand"></td>
-                    <td><input type="number" value="${values.high.price}" data-item="${item}" data-type="high-price"></td>
-                    <td><input type="text" value="${values.high.brand}" data-item="${item}" data-type="high-brand"></td>
+                    <td><input type="number" value="${values.low}" data-item="${item}" data-type="low"></td>
+                    <td><input type="number" value="${values.mid}" data-item="${item}" data-type="mid"></td>
+                    <td><input type="number" value="${values.high}" data-item="${item}" data-type="high"></td>
                 `;
                 tableBody.appendChild(row);
             }
@@ -3141,29 +2994,13 @@
             inputs.forEach(input => {
                 const item = input.getAttribute('data-item');
                 const type = input.getAttribute('data-type');
-                const value = type.includes('price') ? parseFloat(input.value) : input.value;
+                const value = parseFloat(input.value);
                 
                 if (!data.material[item]) {
-                    data.material[item] = {
-                        low: { price: 0, brand: '' },
-                        mid: { price: 0, brand: '' },
-                        high: { price: 0, brand: '' }
-                    };
+                    data.material[item] = {};
                 }
                 
-                if (type === 'low-price') {
-                    data.material[item].low.price = value;
-                } else if (type === 'low-brand') {
-                    data.material[item].low.brand = value;
-                } else if (type === 'mid-price') {
-                    data.material[item].mid.price = value;
-                } else if (type === 'mid-brand') {
-                    data.material[item].mid.brand = value;
-                } else if (type === 'high-price') {
-                    data.material[item].high.price = value;
-                } else if (type === 'high-brand') {
-                    data.material[item].high.brand = value;
-                }
+                data.material[item][type] = value;
             });
             
             const success = await saveData('material', data.material);
@@ -3236,7 +3073,16 @@
         function initializeExportModal() {
             const exportModal = document.getElementById('exportModal');
             const closeExportModal = document.getElementById('closeExportModal');
+            const exportBtn = document.getElementById('exportBtn');
             const confirmExport = document.getElementById('confirmExport');
+            
+            exportBtn.addEventListener('click', () => {
+                if (!currentQuoteData) {
+                    alert('请先生成报价单！');
+                    return;
+                }
+                exportModal.style.display = 'flex';
+            });
             
             closeExportModal.addEventListener('click', () => {
                 exportModal.style.display = 'none';
